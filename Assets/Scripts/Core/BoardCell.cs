@@ -1,8 +1,9 @@
+using Fusion;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BoardCell : MonoBehaviour
+public class BoardCell : NetworkBehaviour
 {
     [SerializeField] private int cellIndex;
     private Button button;
@@ -21,20 +22,23 @@ public class BoardCell : MonoBehaviour
     {
         button.interactable = false;
         Debug.Log("Clicked!");
-        if (FusionManager.instance.runner.LocalPlayer.PlayerId == 0)
+        if (FusionManager.instance.runner.LocalPlayer.PlayerId == 1)
         {
-            text.text = "X";
+            RPC_SyncMove("X");
         }
         else
         {
-            text.text = "O";
+            RPC_SyncMove("O");
         }
 
         GameManager.instance.RemoveButton(button);
     }
 
-    public void SetInteractable(bool interactable)
+    [Rpc]
+    public void RPC_SyncMove(string str)
     {
-        button.interactable = interactable;
+        text.text = str;
     }
+
+
 }

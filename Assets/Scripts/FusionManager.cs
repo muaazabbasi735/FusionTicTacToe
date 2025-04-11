@@ -4,7 +4,7 @@ using Fusion.Sockets;
 using System.Collections.Generic;
 using System;
 using UnityEngine.SceneManagement;
-using UnityEditor.Build.Content;
+using TMPro;
 
 public class FusionManager : MonoBehaviour, INetworkRunnerCallbacks
 {
@@ -12,9 +12,12 @@ public class FusionManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private bool isProvideInput = true;
 
     public GameObject gameManagerPrefab;
-    public static GameManager gameManagerScript; 
+    public GameManager gameManagerScript; 
 
     public static FusionManager instance;
+
+    public TMP_Text statusMessage;
+    public Transform cellsParent;
 
     private void Awake()
     {
@@ -32,6 +35,7 @@ public class FusionManager : MonoBehaviour, INetworkRunnerCallbacks
             instance = this;
         }
 
+        statusMessage.text = "Connecting...";
         NetworkRunner.CloudConnectionLost += OnCloudConnectionLost;
         StartGame();
     }
@@ -56,10 +60,14 @@ public class FusionManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnConnectedToServer(NetworkRunner runner)
     {
         Debug.Log("We are connected to the server!");
+        statusMessage.text = "Connected to the server.";
+
     }
 
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
     {
+        statusMessage.text = "Connection to the server failed";
+
     }
 
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
@@ -72,6 +80,7 @@ public class FusionManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
     {
+        statusMessage.text = "Disconnected from the server.";
     }
 
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
@@ -97,11 +106,14 @@ public class FusionManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.Log("A player has joined with PlayerRef:"+player);
-        if(player.PlayerId == 0)
+        if (runner.SessionInfo.PlayerCount > 1)
         {
-            NetworkObject gm = runner.Spawn(gameManagerPrefab);
-            gameManagerScript = gm.GetComponent<GameManager>();
-            gameManagerScript.startGame();
+            if (runner.LocalPlayer.PlayerId == 1)
+            {
+                NetworkObject gm = runner.Spawn(gameManagerPrefab);
+                gameManagerScript = gm.GetComponent<GameManager>();
+                gameManagerScript.startGame();
+            }
         }
     }
 
@@ -141,6 +153,7 @@ public class FusionManager : MonoBehaviour, INetworkRunnerCallbacks
 
     private void OnCloudConnectionLost(NetworkRunner runner, ShutdownReason reason, bool reconnecting)
     {
+        statusMessage.text = "C";
 
     }
 }
