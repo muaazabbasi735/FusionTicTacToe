@@ -24,11 +24,16 @@ public class BoardCell : NetworkBehaviour
         Debug.Log("Clicked!");
         if (FusionManager.instance.runner.LocalPlayer.PlayerId == 1)
         {
+          
             RPC_SyncMove("X");
+            RPC_UpdatePlayField(transform.GetSiblingIndex(), "X");
+
         }
         else
         {
+            
             RPC_SyncMove("O");
+            RPC_UpdatePlayField(transform.GetSiblingIndex(), "O");
         }
 
         GameManager.instance.RemoveButton(button);
@@ -38,7 +43,15 @@ public class BoardCell : NetworkBehaviour
     public void RPC_SyncMove(string str)
     {
         text.text = str;
+        button.interactable = false;
     }
 
+    [Rpc]
+    public void RPC_UpdatePlayField(int i, string s)
+    {
+        GameManager.instance.UpdatePlayfield(i, s);
 
+
+    }
+    
 }
