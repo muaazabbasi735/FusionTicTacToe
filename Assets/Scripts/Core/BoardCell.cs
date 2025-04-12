@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Fusion;
 using TMPro;
 using UnityEngine;
@@ -20,33 +21,33 @@ public class BoardCell : NetworkBehaviour
 
     private void OnCellClicked()
     {
-        button.interactable = false;
         Debug.Log("Clicked!");
         if (FusionManager.instance.runner.LocalPlayer.PlayerId == 1)
         {
-          
-            RPC_SyncMove("X");
             RPC_UpdatePlayField(transform.GetSiblingIndex(), "X");
+
+            RPC_SyncMove("X");
 
         }
         else
         {
-            
-            RPC_SyncMove("O");
             RPC_UpdatePlayField(transform.GetSiblingIndex(), "O");
+
+            RPC_SyncMove("O");
         }
 
         GameManager.instance.RemoveButton(button);
     }
 
-    [Rpc]
+    [Rpc(RpcSources.All, RpcTargets.All)]
     public void RPC_SyncMove(string str)
     {
-        text.text = str;
         button.interactable = false;
+        text.text = str;
+        text.transform.DOScale(Vector3.one, 1f);
     }
 
-    [Rpc]
+    [Rpc(RpcSources.All, RpcTargets.All)]
     public void RPC_UpdatePlayField(int i, string s)
     {
         GameManager.instance.UpdatePlayfield(i, s);

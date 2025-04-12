@@ -1,6 +1,6 @@
+using DG.Tweening;
 using Fusion;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,50 +10,41 @@ public class GameManager : NetworkBehaviour
     public int playersTurn;
     public static GameManager instance;
     public List<Button> availableButtons;
-
-
-    private TMP_Text statusMsg;
-
+    public TMP_Text statusMsg;
     public string[] playfield = new string[9];
-
     public Button backBtn;
+    public GameObject gameBoard;
 
     private void Awake()
     {
-        statusMsg = GameObject.Find("GameStatusTxt").GetComponent<TMP_Text>();
-        backBtn = GameObject.Find("BackBtn").GetComponent<Button>();
-        backBtn.onClick.AddListener(GoToLobby);
-        backBtn.gameObject.SetActive(false);
 
         if (instance == null)
         {
             instance = this;
         }
-        
+
+        gameBoard.transform.localPosition = new Vector3(1920f, 0f,0f);
+        gameBoard.transform.DOLocalMoveX(0f, 3f);
+
+        backBtn.onClick.AddListener(GoToLobby);
+
         playersTurn = 1;
 
         if(FusionManager.instance.runner.LocalPlayer.PlayerId == 2)
         {
-            statusMsg.text = "Wait for your turn!";
+            statusMsg.text = "Please wait for your turn!";
         }
 
-        Transform cellsParent = GameObject.Find("Board").transform;
-        availableButtons = cellsParent.GetComponentsInChildren<Button>().ToList();
     }
 
     private void GoToLobby()
     {
         FusionManager.instance.runner.Shutdown(false, ShutdownReason.Ok, true);
-
     }
 
     public void startGame()
     {
-        foreach (var button in availableButtons)
-        {
-            button.interactable = true;
-        }
-
+        UpdateCellInteraction(true);
         statusMsg.text = "Its your turn!";
     }
 
@@ -67,37 +58,31 @@ public class GameManager : NetworkBehaviour
     public void RPC_RemoveButtonFromList(int i)
     {
         availableButtons.RemoveAt(i);
-
     }
 
     public void ChangePlayer()
     {
-        if(playersTurn == 1)
-        {
-            playersTurn = 2;
-        }
-        else
-        {
-            playersTurn = 1;
-        }
+        playersTurn = (playersTurn == 1) ? 2 : 1;
 
         if(Runner.LocalPlayer.PlayerId == playersTurn) 
         {
             statusMsg.text = "Its your turn!";
-
-            foreach (var button in availableButtons)
-            {
-                button.interactable = true;
-            }
+            UpdateCellInteraction(true);
+            
         }
         else
         {
             statusMsg.text = "Wait for your turn!";
+            UpdateCellInteraction(false);
+           
+        }
+    }
 
-            foreach (var button in availableButtons)
-            {
-                button.interactable = false;
-            }
+    private void UpdateCellInteraction(bool isIntrctve)
+    {
+        foreach (var button in availableButtons)
+        {
+            button.interactable = isIntrctve;
         }
     }
 
@@ -117,6 +102,8 @@ public class GameManager : NetworkBehaviour
             Debug.Log("Draw!");
             statusMsg.text = "Its a draw!";
             backBtn.gameObject.SetActive(true);
+            UpdateCellInteraction(false);
+
         }
         else
         {
@@ -127,6 +114,8 @@ public class GameManager : NetworkBehaviour
                     Debug.Log("X wins!");
                     statusMsg.text = "Player X Won!";
                     backBtn.gameObject.SetActive(true);
+                    UpdateCellInteraction(false);
+
 
                 }
                 else
@@ -134,6 +123,8 @@ public class GameManager : NetworkBehaviour
                     Debug.Log("O wins!");
                     statusMsg.text = "Player O Won!";
                     backBtn.gameObject.SetActive(true);
+                    UpdateCellInteraction(false);
+
 
                 }
             }
